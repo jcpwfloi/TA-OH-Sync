@@ -1,0 +1,6 @@
+credentials.json
+token.json
+.DS_Store
+yarn.lock
+*.swp
+node_modules
