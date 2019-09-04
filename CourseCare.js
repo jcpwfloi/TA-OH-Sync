@@ -4,6 +4,8 @@ class CourseCare {
   constructor({ username, password }) {
     this.username = username;
     this.password = password;
+
+    this.login(console.log);
   }
 
   login(callback) {
@@ -16,7 +18,7 @@ class CourseCare {
       }
     }, (err, res, body) => {
       if (err) return callback(err, null);
-      if (res.headers["set-cookie"] && res.headers["set-cookie"].length) {
+      if (res.headers["set-cookie"] && res.headers["set-cookie"].length && res.headers["location"] === '/') {
         var cookie = res.headers["set-cookie"][0];
         callback(null, cookie);
       } else callback(new Error('Wrong Login Credentials'), null);
