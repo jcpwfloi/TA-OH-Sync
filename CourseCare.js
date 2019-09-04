@@ -25,9 +25,11 @@ class CourseCare {
     });
   }
 
+  combine(data) {
+  }
+
   sync(data) {
-    this.login((err, cookie) => {
-    });
+    console.log(data);
   }
 }
 

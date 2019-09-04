@@ -86,10 +86,17 @@ function listEvents(auth) {
         return {
           name: event.summary,
           start: event.start.dateTime,
-          end: event.end.dateTime
+          end: event.end.dateTime,
+          location: event.location
         }
       });
-      console.log(events);
+      var { username, password } = require('./config.json');
+      const CourseCare = require('./CourseCare');
+      var course = new CourseCare({
+        username, password
+      });
+
+      course.sync(events);
     } else {
       console.log('No upcoming events found.');
     }
