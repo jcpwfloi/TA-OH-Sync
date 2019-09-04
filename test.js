@@ -1,6 +1,7 @@
 const CourseCare = require('./CourseCare');
+const config = require('./config.json');
 
 const app = new CourseCare({
-  username: 'jcpwfloi@live.unc.edu',
-  password: 'oXY3GHA!Y.*e'
+  username: config.username,
+  password: config.password
 });

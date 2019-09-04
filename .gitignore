@@ -4,3 +4,4 @@ token.json
 yarn.lock
 *.swp
 node_modules
+config.json
