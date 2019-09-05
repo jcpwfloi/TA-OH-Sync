@@ -5,3 +5,4 @@ yarn.lock
 *.swp
 node_modules
 config.json
+cookies.json

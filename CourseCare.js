@@ -1,4 +1,11 @@
-const request = require('request');
+const requestLib = require('request');
+const dateformat = require('dateformat');
+const cheerio = require('cheerio')
+
+var FileCookieStore = require('tough-cookie-filestore');
+// NOTE - currently the 'cookies.json' file must already exist!
+var j = requestLib.jar(new FileCookieStore('cookies.json'));
+request = requestLib.defaults({ jar : j })
 
 class CourseCare {
   constructor({ username, password }) {
@@ -6,21 +13,77 @@ class CourseCare {
     this.password = password;
   }
 
-  login(callback) {
-    let { username, password } = this;
-    request({
-      method: 'POST',
-      url: 'https://course.care/login',
-      form: {
-        email: username, password
-      }
-    }, (err, res, body) => {
-      if (err) return callback(err, null);
-      if (res.headers["set-cookie"] && res.headers["set-cookie"].length && res.headers["location"] === '/') {
-        var cookie = res.headers["set-cookie"][0];
-        callback(null, cookie);
-      } else callback(new Error('Wrong Login Credentials'), null);
+  remote(url, form) {
+    return new Promise((resolve, reject) => {
+      request({
+        method: 'POST',
+        url,
+        form
+      }, (err, res, body) => {
+        if (err) return reject(err);
+        resolve({ res, body });
+      });
     });
+  }
+
+  async login() {
+    let { username, password } = this;
+    try {
+      var { res, body } = await this.remote('https://course.care/login', {
+        email: username, password
+      });
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async addOfficeHour({ name, start, end, location }) {
+    var template = {
+      type: "Office Hours",
+      description: '',
+      openAtDate: dateformat(start, 'mm/dd/yyyy'),
+      openAtTime: dateformat(start, 'HH:MM'),
+      closeAtTime: dateformat(end, 'HH:MM'),
+      location: 95,
+      checkinMethod: "Queue",
+      id: ""
+    };
+
+    var { res, body } = await this.remote('https://course.care/course/31/event', template);
+  }
+
+  getRemote(url) {
+    return new Promise((resolve, reject) => {
+      request(url, (err, res, body) => {
+        if (err) return reject(err);
+        const $ = cheerio.load(body);
+        resolve($);
+      })
+    });
+  }
+
+  async getOfficeHour() {
+    var ans = [];
+    var addr = [];
+    var $ = await this.getRemote('https://course.care/course/31/events');
+    var btns = $('td.align-middle > a.btn');
+
+    btns.each((d, e) => {
+      addr.push($(e).attr('href'));
+    });
+
+    for (var i = 0; i < addr.length; ++ i) {
+      var v = addr[i];
+      $ = await this.getRemote('https://course.care' + v);
+      let arr = $('form').serializeArray();
+      var data = {};
+      arr.map(v => {
+        data[v.name] = v.value;
+      });
+      ans.push(data);
+    }
+
+    console.log(ans);
   }
 
   merge(a, b) {
@@ -70,7 +133,7 @@ class CourseCare {
 
     data.map((d) => {
       if (!table[d.location]) table[d.location] = [];
-      
+
       table[d.location].push(d);
     });
 
@@ -79,7 +142,10 @@ class CourseCare {
       ans = ans.concat(table[loc]);
     }
 
-    console.log(ans);
+    this.events = ans;
+
+    this.addOfficeHour(ans[1]).then((info) => {
+    });
   }
 }
 

@@ -5,3 +5,6 @@ const app = new CourseCare({
   username: config.username,
   password: config.password
 });
+
+app.getOfficeHour().then((d) => {
+});
