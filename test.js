@@ -7,4 +7,8 @@ const app = new CourseCare({
 });
 
 app.getOfficeHour().then((d) => {
+  d.map(v => {
+    app.deleteOfficeHour(v.id);
+  });
 });
+

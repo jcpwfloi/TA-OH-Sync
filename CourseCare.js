@@ -44,12 +44,16 @@ class CourseCare {
       openAtDate: dateformat(start, 'mm/dd/yyyy'),
       openAtTime: dateformat(start, 'HH:MM'),
       closeAtTime: dateformat(end, 'HH:MM'),
-      location: 95,
+      location: location == 'Lobby' ? 96 : (location == 'SN365' ? 98 : 95),
       checkinMethod: "Queue",
       id: ""
     };
 
     var { res, body } = await this.remote('https://course.care/course/31/event', template);
+  }
+
+  async deleteOfficeHour(id) {
+    await this.remote(`https://course.care/course/31/event/${id}/delete`, {});
   }
 
   getRemote(url) {
@@ -83,7 +87,7 @@ class CourseCare {
       ans.push(data);
     }
 
-    console.log(ans);
+    return ans;
   }
 
   merge(a, b) {
@@ -144,7 +148,8 @@ class CourseCare {
 
     this.events = ans;
 
-    this.addOfficeHour(ans[1]).then((info) => {
+    ans.map((v) => {
+      this.addOfficeHour(v);
     });
   }
 }
